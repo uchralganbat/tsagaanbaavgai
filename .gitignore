@@ -1,2 +1,3 @@
-xfiles/
-.env
+analytics/.env
+server/.env
+server/node_modules/
