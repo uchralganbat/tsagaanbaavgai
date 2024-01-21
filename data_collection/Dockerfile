@@ -7,7 +7,7 @@ RUN apt-get update -y && \
     apt-get install -y python3 python3-pip
 
 # Install BeautifulSoup4 and any other dependencies you may need
-RUN pip3 install beautifulsoup4 requests
+RUN pip3 install requests
 
 # Set the working directory
 WORKDIR /app

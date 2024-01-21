@@ -16,4 +16,3 @@ class Ikon(Base):
                     for i in li:
                         if i.find("a"):
                             print(i.find("a").text)
-                            df = pd.DataFrame({"Category": [i.find("a").text]})
