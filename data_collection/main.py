@@ -21,6 +21,10 @@ urls_to_scrape = [
 ikon = "https://ikon.mn"
 
 if __name__ == "__main__":
+    """
+    Politic articles
+    """
+
     category = {
         "politics": "l/1",
         "economics": "l/2",
@@ -29,10 +33,6 @@ if __name__ == "__main__":
     driver = webdriver.Chrome()
     driver.get(f"{ikon}/l/1")
 
-    """
-        Politic articles
-    """
-
     try:
         data = {
             "date": [],
@@ -40,22 +40,18 @@ if __name__ == "__main__":
             "url": [],
             "main": [],
             "author": [],
-            "article_source": [],
             "title": [],
         }
-        pagination = driver.find_element(by=By.CLASS_NAME, value="ikpagination")
+        is_next_disabled = False
 
-        wait = WebDriverWait(driver, timeout=2)
-        wait.until(lambda d: pagination.is_displayed())
-
-        pages = driver.find_elements(by=By.CLASS_NAME, value="ikp_item")
-
-        for page in pages:
+        while not is_next_disabled:
             try:
-                page_url = page.get_attribute("data-url")
-
-                driver.get(f"{ikon}{page_url}")
-
+                wait = WebDriverWait(driver, 10)
+                current_page = wait.until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, ".ikp_item.pactive")
+                    )
+                )
                 news_list_container = WebDriverWait(driver, timeout=2).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "newslistcontainer"))
                 )
@@ -87,9 +83,9 @@ if __name__ == "__main__":
                     main = " ".join(
                         [p.text for p in news.find_elements(By.TAG_NAME, "p")]
                     )
-                    article_source = news.find_element(By.TAG_NAME, "strong").text
+                    # article_source = news.find_element(By.TAG_NAME, "strong").text
 
-                    data["article_source"].append(article_source)
+                    # data["article_source"].append(article_source)
                     data["author"].append(author)
                     data["main"].append(main)
                     data["title"].append(title)
@@ -99,6 +95,12 @@ if __name__ == "__main__":
 
                     driver.back()
 
+                try:
+                    current_page.find_element(
+                        By.XPATH, "following-sibling::*[1]"
+                    ).click()
+                except:
+                    driver.find_element(by=By.CLASS_NAME, value="ikp_arrow").click()
             except StaleElement:
                 print("Element is stale. Skipping")
 
