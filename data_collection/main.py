@@ -1,11 +1,13 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import StaleElementReferenceException as StaleElement
 from selenium import webdriver
 
+import bs4 as bs
 
 import pandas as pd
-
+import time
 
 # List of URLs to scrape
 urls_to_scrape = [
@@ -13,6 +15,7 @@ urls_to_scrape = [
     "https://news.mn",
     "https://www.bloombergtv.mn/",
     "https://mongoltv.mn/news",
+    "https://ergelt.mn",
 ]
 
 ikon = "https://ikon.mn"
@@ -29,7 +32,17 @@ if __name__ == "__main__":
     """
         Politic articles
     """
+
     try:
+        data = {
+            "date": [],
+            "headline": [],
+            "url": [],
+            "main": [],
+            "author": [],
+            "article_source": [],
+            "title": [],
+        }
         pagination = driver.find_element(by=By.CLASS_NAME, value="ikpagination")
 
         wait = WebDriverWait(driver, timeout=2)
@@ -38,26 +51,60 @@ if __name__ == "__main__":
         pages = driver.find_elements(by=By.CLASS_NAME, value="ikp_item")
 
         for page in pages:
-            page.click()
+            try:
+                page_url = page.get_attribute("data-url")
 
-            wait.until(
-                lambda d: d.find_element(by=By.CLASS_NAME, value="newslistcontainer")
-            )
+                driver.get(f"{ikon}{page_url}")
 
-            news = page.find_elements(by=By.CLASS_NAME, value="nlitem")
+                news_list_container = WebDriverWait(driver, timeout=2).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "newslistcontainer"))
+                )
 
-            for item in news:
-                date = item.find_element(
-                    by=By.CLASS_NAME, value="nldate"
-                ).get_attribute("rawdate")
+                items = news_list_container.find_elements(
+                    by=By.CLASS_NAME, value="nlitem"
+                )
 
-                headline = item.find_element(by=By.CLASS_NAME, value="nlheadline").text
+                for item in items:
+                    date = item.find_element(
+                        by=By.CLASS_NAME, value="nldate"
+                    ).get_attribute("rawdate")
 
-                title, url = item.find_element(
-                    By.TAG_NAME, "a"
-                ).text, item.find_element(By.TAG_NAME, "a").get_attribute("href")
+                    headline = item.find_element(
+                        by=By.CLASS_NAME, value="nlheadline"
+                    ).text
 
-                print(date, headline, title, url)
+                    url = item.find_element(By.TAG_NAME, "a").get_attribute("href")
+
+                    print(date, headline, url)
+
+                    driver.get(url)
+
+                    news = driver.find_element(by=By.CLASS_NAME, value="inews")
+
+                    title = news.find_element(by=By.TAG_NAME, value="h1").text
+
+                    author = news.find_element(by=By.CLASS_NAME, value="name").text
+                    main = " ".join(
+                        [p.text for p in news.find_elements(By.TAG_NAME, "p")]
+                    )
+                    article_source = news.find_element(By.TAG_NAME, "strong").text
+
+                    data["article_source"].append(article_source)
+                    data["author"].append(author)
+                    data["main"].append(main)
+                    data["title"].append(title)
+                    data["url"].append(url)
+                    data["date"].append(date)
+                    data["headline"].append(headline)
+
+                    driver.back()
+
+            except StaleElement:
+                print("Element is stale. Skipping")
 
     finally:
         driver.quit()
+
+    df = pd.DataFrame(data)
+
+    df.to_csv("politics.csv", index=False)
