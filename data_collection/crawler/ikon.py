@@ -3,16 +3,68 @@ import pandas as pd
 
 
 class Ikon(Base):
-    def __init__(self, url):
-        super().__init__(url)
+    def __init__(self, base_url):
+        super().__init__(base_url)
+        self.data = {
+            "date": [],
+            "headline": [],
+            "url": [],
+            "main": [],
+            "author": [],
+            "title": [],
+        }
 
-    def extract_data(self, soup):
-        navbar = soup.find("div", class_="inavbar")
-        if navbar:
-            ul = navbar.find("ul")
-            if ul:
-                li = ul.find_all("li")
-                if li:
-                    for i in li:
-                        if i.find("a"):
-                            print(i.find("a").text)
+        self.category = {
+            "politics": "l/1",
+            "economics": "l/2",
+        }
+
+    def extract_data(self):
+        soup = self.request_and_parse(self.category["politics"])
+
+        pages = soup.find_all("div", {"class": "ikp_item"})
+
+        for page in pages:
+            print(page.get("data-url"))
+            page_soup = self.request_and_parse(page.get("data-url"))
+
+            items = page_soup.find_all("div", {"class": "nlitem"})
+            for item in items:
+                self.extract_item(item)
+
+            print(self.data)
+
+        return pd.DataFrame(self.data, columns=self.data.keys())
+
+    def extract_item(self, item):
+        try:
+            article_url = item.find("a").get("href")
+            match article_url:
+                case "opinion":
+                    print("opinion article")
+                    return
+                case _:
+                    date = item.find("div", {"class": "nldate"}).get("rawdate")
+
+                    headline = item.find("div", {"class": "nlheadline"}).text.strip()
+
+                    title = item.find("div", {"class": "nlheader"}).text.strip()
+
+                    soup = self.request_and_parse(article_url)
+                    news = soup.find("div", {"class": "inews"})
+
+                    main = " ".join([p.text for p in news.find_all("p")])
+
+                    author = news.find("div", {"class": "name"}).text
+
+        except Exception as e:
+            print(e)
+            print(article_url)
+            return
+
+        self.data["date"].append(date)
+        self.data["headline"].append(headline)
+        self.data["url"].append(f"{self.base_url}/{article_url}")
+        self.data["title"].append(title)
+        self.data["main"].append(main)
+        self.data["author"].append(author)
