@@ -1,5 +1,4 @@
-analytics/.env
-server/.env
-server/node_modules/
+data_collection/*.csv
 .venv
 twitter.pem
+
