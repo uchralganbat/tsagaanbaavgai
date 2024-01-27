@@ -1,79 +1,104 @@
 from websites.base import Base
 import pandas as pd
+import logging
+import os
+from dataclasses import dataclass
+from bs4 import BeautifulSoup
+from bs4.element import Tag
+from typing import Optional
+
+
+@dataclass
+class Article:
+    date: str
+    headline: str
+    url: str
+    content: str
+    author: str
+    title: str
+    category: str
+    source: str
 
 
 class Ikon(Base):
     def __init__(self, base_url):
         super().__init__(base_url)
-        self.data = {
-            "date": [],
-            "headline": [],
-            "url": [],
-            "main": [],
-            "author": [],
-            "title": [],
-        }
-
-        # self.df = pd.DataFrame(
-        #     columns=["date", "headline", "url", "main", "author", "title"]
-        # )
 
         self.category = {
             "politics": "l/1",
             "economics": "l/2",
         }
 
-    def extract_data(self):
-        soup = self.request_and_parse(self.category["politics"])
+    def extract_data(self, output_filepath: str, date: str) -> None:
+        next_url = self.category["politics"]
 
+        while next_url:
+            soup = self.request_and_parse(path=next_url)
+            next_url = self.get_next_page_url(soup)
+            df = self.extract_articles(soup)
+
+            with open(os.path.join(output_filepath, f"ikon-{date}.csv"), "a") as file:
+                df.to_csv(file, index=False)
+            logging.info(f"Extracted data from pagination: {next_url}")
+
+        logging.info(f"Extracted data from all pagination")
+        return
+
+    def extract_articles(self, soup: BeautifulSoup) -> pd.DataFrame:
         pages = soup.find_all("div", {"class": "ikp_item"})
+        articles = []
 
         for page in pages:
-            page_soup = self.request_and_parse(page.get("data-url"))
-
+            page_soup = self.request_and_parse(path=page.get("data-url"))
             items = page_soup.find_all("div", {"class": "nlitem"})
             for item in items:
-                self.extract_item(item)
+                article = self.extract_item(item=item)
+                if article is not None:
+                    articles.append(self.extract_item(item=item))
+            logging.info(f"Extracted data from page: {page.get('data-url')}")
 
-        return pd.DataFrame(self.data, columns=self.data.keys())
+        return pd.DataFrame([article.__dict__ for article in articles])
 
-    def extract_item(self, item):
+    def extract_item(self, item: Tag) -> Optional[Article]:
         try:
             article_url = item.find("a").get("href")
-            match article_url:
-                case "opinion" if "opinion" in article_url:
-                    print("opinion article")
-                    return
+            if "opinion" in article_url:
+                print("opinion article")
+                return
 
-                case _:
-                    date = item.find("div", {"class": "nldate"}).get("rawdate")
-                    headline = item.find("div", {"class": "nlheadline"}).text.strip()
-                    title = item.find("div", {"class": "nlheader"}).text.strip()
+            date = item.find("div", {"class": "nldate"}).get("rawdate")
+            headline = item.find("div", {"class": "nlheadline"}).text.strip()
+            title = item.find("div", {"class": "nlheader"}).text.strip()
 
-                    soup = self.request_and_parse(article_url)
-                    news = soup.find("div", {"class": "inews"})
+            soup = self.request_and_parse(article_url)
+            news = soup.find("div", {"class": "inews"})
 
-                    main = " ".join([p.text for p in news.find_all("p")])
-                    author = news.find("div", {"class": "name"}).text
+            content = " ".join([p.text for p in news.find_all("p")])
+            author = news.find("div", {"class": "name"}).text
 
-                    # row = {
-                    #     "date": date,
-                    #     "headline": headline,
-                    #     "url": f"{self.base_url}/{article_url}",
-                    #     "main": main,
-                    #     "author": author,
-                    #     "title": title,
-                    # }
+            return Article(
+                date=date,
+                headline=headline,
+                url=f"{self.base_url}/{article_url}",
+                content=content,
+                author=author,
+                title=title,
+                category="politics",
+                source="ikon",
+            )
 
         except Exception as e:
-            print(e)
-            print(article_url)
-            return
+            logging.error(
+                f"Error extracting data from item: {e}, \n article url: {article_url}"
+            )
 
-        # self.df = self.df.append(row, ignore_index=True)
-        self.data["date"].append(date)
-        self.data["headline"].append(headline)
-        self.data["url"].append(f"{self.base_url}/{article_url}")
-        self.data["title"].append(title)
-        self.data["main"].append(main)
-        self.data["author"].append(author)
+    def get_next_page_url(self, soup: BeautifulSoup) -> Optional[str]:
+        next_page = soup.find("i", {"class": "ikon-right-dir"})
+        if next_page:
+            return next_page.get("data-url")
+        else:
+            logging.info("No next page URL found.")
+            return None
+
+    def run_batch(self):
+        logging.info("Running batch")

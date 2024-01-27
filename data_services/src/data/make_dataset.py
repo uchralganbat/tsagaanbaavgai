@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import click
 import logging
+import datetime
 
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
@@ -19,8 +20,10 @@ def main(input_filepath, output_filepath):
     logger.info("scraping data from websites")
 
     ikon = Ikon("https://ikon.mn")
-    df = ikon.extract_data()
-    df.to_csv(f"{output_filepath}/politics.csv", index=False)
+    date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    ikon.extract_data(output_filepath=output_filepath, date=date)
+
     logger.info("done!")
 
 
