@@ -45,7 +45,7 @@ class Ikon(Base):
             df = self.extract_articles(soup)
 
             with open(os.path.join(output_filepath, f"ikon-{date}.csv"), "a") as file:
-                df.to_csv(file, index=False)
+                df.to_csv(file, index=False, header=False)
             logging.info(f"Extracted data from pagination: {next_url}")
 
         logging.info(f"Extracted data from all pagination")
