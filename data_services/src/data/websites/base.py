@@ -3,6 +3,22 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 
 
+"""
+https://news.mn
+https://news.zindaa.mn
+https://medee.mn
+https://gogo.mn
+https://unread.today/
+https://www.sonin.mn
+https://itoim.mn
+https://eguur.mn
+https://arslan.mn
+https://caak.mn
+https://bloombergtv.mn
+https://montsame.mn
+"""
+
+
 class Base:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -19,3 +35,6 @@ class Base:
 
     def extract_data(self):
         raise NotImplementedError("Subclasses must implement the extract_data method.")
+
+    def search(self, query):
+        raise NotImplementedError("Subclasses must implement the search method.")
