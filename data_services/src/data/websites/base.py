@@ -16,6 +16,7 @@ https://arslan.mn
 https://caak.mn
 https://bloombergtv.mn
 https://montsame.mn
+https://livetv.mn
 """
 
 
