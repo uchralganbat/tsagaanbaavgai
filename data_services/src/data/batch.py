@@ -1,25 +1,23 @@
+from src.common import db
+from src.data.websites.ikon import Ikon
+import logging
 import click
 import logging
 
+import os
+
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
-from websites.ikon import Ikon
 
 
 @click.command()
-@click.argument("input_filepath", type=click.Path(exists=True))
-@click.argument("output_filepath", type=click.Path())
-def main(input_filepath, output_filepath):
-    """Runs data processing scripts to turn raw data from (../raw) into
-    cleaned data ready to be analyzed (saved in ../processed).
-    """
+def main():
 
     logger = logging.getLogger(__name__)
-    logger.info("scraping data from websites")
+    logger.info("daily batch started")
+    session = db.connect(os.getenv("DATABASE_URI"))
     ikon = Ikon("https://ikon.mn")
-    ikon.extract_data(output_filepath=output_filepath)
-
-    logger.info("done!")
+    ikon.run_batch()
 
 
 if __name__ == "__main__":

@@ -1,35 +1,23 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, func
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlmodel import Field, SQLModel, create_engine, Session
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import Optional, List
+
+
+class Article(SQLModel, table=True):
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    headline: str
+    url: str
+    author: str
+    title: str
+    category: str
+    source: str
+    date: str
+    content: str
 
 
 def connect(db_uri):
-    engine = create_engine(db_uri)
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
+    engine = create_engine(db_uri, echo=True)
+    SQLModel.metadata.create_all(engine)
+    session = Session(engine)
     return session
-
-
-Base = declarative_base()
-
-
-class Article(Base):
-    __tablename__ = "articles"
-
-    id = Column(Integer, primary_key=True)
-    headline: Column(String)
-    url: Column(String)
-    author: Column(String)
-    title: Column(String)
-    category: Column(String)
-    source: Column(String)
-    date: Column(String)
-    content: Column(String)
-
-
-# Connect to the database

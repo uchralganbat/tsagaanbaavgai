@@ -1,4 +1,4 @@
-from websites.base import Base
+from .base import Base
 import pandas as pd
 import logging
 import os
@@ -29,14 +29,16 @@ class Ikon(Base):
         self.category = {
             "politics": "l/1",
             "economics": "l/2",
+            "society": "l/3",
+            "health": "l/16",
+            "international": "l/4",
+            "technology": "l/7",
         }
 
     def extract_data(self, output_filepath: str) -> None:
         next_url = self.category["politics"]
 
         date = datetime.datetime.now().strftime("%Y-%m-%d-%H")
-
-        last_url = "/l/1/mudwyo/mudwyo"
 
         while next_url:
             soup = self.request_and_parse(path=next_url)
@@ -113,5 +115,21 @@ class Ikon(Base):
             logging.info("No next page URL found.")
             return None
 
-    def run_batch(self):
+    def run_batch(self) -> Optional[list[Article]]:
         logging.info("Running batch")
+        articles = []
+        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
+            "%m/%d/%Y %H:%M:%S"
+        )
+
+        for category in self.category.values():
+            soup = self.request_and_parse(path=category)
+            items = soup.find_all("div", {"class": "nlitem"})
+            for item in items:
+                print(item.find("div", {"class": "nldate"}).get("rawdate"))
+                print(yesterday)
+                input()
+                if item.find("div", {"class": "nldate"}).get("rawdate") < yesterday:
+                    article = self.extract_item(item=item)
+                    if article is not None:
+                        articles.append(article)

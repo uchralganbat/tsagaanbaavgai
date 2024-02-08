@@ -29,8 +29,8 @@ requirements: test_environment
 data: requirements
 	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/processed data/raw
 
-daily: requirements 
-	$(PYTHON_INTERPRETER) src/services/daily_batch.py
+batch:  
+	$(PYTHON_INTERPRETER) src/data/batch.py
 
 ## Delete all compiled Python files
 clean:
