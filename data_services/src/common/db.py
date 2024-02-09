@@ -1,23 +1,25 @@
 from sqlmodel import Field, SQLModel, create_engine, Session
-from datetime import datetime
-from typing import Optional, List
+from src.common.models.article import Article
+from dotenv import load_dotenv, find_dotenv
+import os
+
+load_dotenv(find_dotenv())
+
+db_url = os.getenv("DATABASE_URI")
+
+engine = create_engine(db_url, echo=True)
 
 
-class Article(SQLModel, table=True):
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    headline: str
-    url: str
-    author: str
-    title: str
-    category: str
-    source: str
-    date: str
-    content: str
-
-
-def connect(db_uri):
-    engine = create_engine(db_uri, echo=True)
+def connect():
     SQLModel.metadata.create_all(engine)
-    session = Session(engine)
-    return session
+
+
+def update_articles(articles: list[Article]):
+    with Session(engine) as session:
+        try:
+            for article in articles:
+                session.add(article)
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e

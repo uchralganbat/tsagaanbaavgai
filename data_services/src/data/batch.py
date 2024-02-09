@@ -1,10 +1,8 @@
-from src.common import db
+from src.common.db import connect, update_articles
 from src.data.websites.ikon import Ikon
 import logging
 import click
 import logging
-
-import os
 
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
@@ -14,10 +12,11 @@ from dotenv import find_dotenv, load_dotenv
 def main():
 
     logger = logging.getLogger(__name__)
-    logger.info("daily batch started")
-    session = db.connect(os.getenv("DATABASE_URI"))
+    connect()
     ikon = Ikon("https://ikon.mn")
-    ikon.run_batch()
+    articles = ikon.run_batch()
+
+    update_articles(articles=articles)
 
 
 if __name__ == "__main__":

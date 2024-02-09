@@ -3,23 +3,11 @@ import pandas as pd
 import logging
 import os
 import datetime
-from dataclasses import dataclass
+from src.common.models.article import Article
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from typing import Optional
 from tqdm import tqdm
-
-
-@dataclass
-class Article:
-    date: str
-    headline: str
-    url: str
-    content: str
-    author: str
-    title: str
-    category: str
-    source: str
 
 
 class Ikon(Base):
@@ -126,10 +114,9 @@ class Ikon(Base):
             soup = self.request_and_parse(path=category)
             items = soup.find_all("div", {"class": "nlitem"})
             for item in items:
-                print(item.find("div", {"class": "nldate"}).get("rawdate"))
-                print(yesterday)
-                input()
                 if item.find("div", {"class": "nldate"}).get("rawdate") < yesterday:
                     article = self.extract_item(item=item)
                     if article is not None:
                         articles.append(article)
+
+        return articles
