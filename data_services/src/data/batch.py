@@ -2,7 +2,6 @@ from src.common.db import connect, update_articles
 from src.data.websites.ikon import Ikon
 import logging
 import click
-import logging
 
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
@@ -11,7 +10,7 @@ from dotenv import find_dotenv, load_dotenv
 @click.command()
 def main():
 
-    logger = logging.getLogger(__name__)
+    logging.getLogger(__name__)
     connect()
     ikon = Ikon("https://ikon.mn")
     articles = ikon.run_batch()

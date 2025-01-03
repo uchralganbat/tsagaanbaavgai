@@ -9,11 +9,12 @@ from bs4.element import Tag
 from typing import Optional
 from tqdm import tqdm
 
+base_url = "https://wwww.ikon.mn"
+
 
 class Ikon(Base):
-    def __init__(self, base_url):
+    def __init__(self):
         super().__init__(base_url)
-
         self.category = {
             "politics": "l/1",
             "economics": "l/2",
@@ -38,7 +39,7 @@ class Ikon(Base):
                 df.to_csv(file, index=False, header=False)
             logging.info(f"Extracted data from pagination: {next_url}")
 
-        logging.info(f"Extracted data from all pagination")
+        logging.info("Extracted data from all pagination")
         return
 
     def extract_articles(self, soup: BeautifulSoup) -> pd.DataFrame:
@@ -67,16 +68,10 @@ class Ikon(Base):
             if "opinion" in article_url:
                 core = soup.find("div", class_=["lrcore", "ikon-opinion"])
                 author = core.find("a", {"class": "op_name"}).text
-                content = (
-                    core.find("div", {"class": "op_left_content"})
-                    .findChild()
-                    .get_text(strip=True, separator=" ")
-                )
+                content = core.find("div", {"class": "op_left_content"}).findChild().get_text(strip=True, separator=" ")
 
             else:
-                content = soup.find("div", {"class": "inews"}).get_text(
-                    strip=True, separator=" "
-                )
+                content = soup.find("div", {"class": "inews"}).get_text(strip=True, separator=" ")
                 author = soup.find("div", {"class": "name"}).text.strip()
 
             return Article(
@@ -91,9 +86,7 @@ class Ikon(Base):
             )
 
         except Exception as e:
-            logging.error(
-                f"Error extracting data from item: {e}, \n article url: {article_url}"
-            )
+            logging.error(f"Error extracting data from item: {e}, \n article url: {article_url}")
 
     def get_next_page_url(self, soup: BeautifulSoup) -> Optional[str]:
         next_page = soup.find("i", {"class": "ikon-right-dir"})
@@ -106,9 +99,7 @@ class Ikon(Base):
     def run_batch(self) -> Optional[list[Article]]:
         logging.info("Running batch")
         articles = []
-        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
-            "%m/%d/%Y %H:%M:%S"
-        )
+        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%m/%d/%Y %H:%M:%S")
 
         for category in self.category.values():
             soup = self.request_and_parse(path=category)

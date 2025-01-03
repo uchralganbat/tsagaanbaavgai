@@ -2,15 +2,15 @@ from dotenv import load_dotenv, find_dotenv
 import os
 import logging
 from src.common import db
-import click
-import logging
-import os
+
+# import click
+# import logging
 from pathlib import Path
 
 
 def main():
 
-    session = db.connect(os.getenv("DATABASE_URI"))
+    db.connect(os.getenv("DATABASE_URI"))
     logging.info("Connected to database")
 
 

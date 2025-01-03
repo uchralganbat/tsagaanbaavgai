@@ -16,7 +16,7 @@ def main(input_filepath, output_filepath):
 
     logger = logging.getLogger(__name__)
     logger.info("scraping data from websites")
-    ikon = Ikon("https://ikon.mn")
+    ikon = Ikon()
     ikon.extract_data(output_filepath=output_filepath)
 
     logger.info("done!")
