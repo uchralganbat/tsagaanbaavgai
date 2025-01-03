@@ -1,5 +1,5 @@
-from src.common.db import connect, update_articles
-from src.data.websites.ikon import Ikon
+from common.db import connect, update_articles
+from common.websites.ikon import Ikon
 import logging
 import click
 

@@ -1,7 +1,7 @@
 from dotenv import load_dotenv, find_dotenv
 import os
 import logging
-from src.common import db
+from common import db
 
 # import click
 # import logging
