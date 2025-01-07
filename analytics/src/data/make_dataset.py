@@ -3,7 +3,7 @@ import logging
 
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
-from src.data.websites.ikon import Ikon
+from common.websites.ikon import Ikon
 
 
 @click.command()

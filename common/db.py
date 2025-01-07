@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, create_engine, Session
-from src.common.models.article import Article
+from common.models.article import Article
 from dotenv import load_dotenv, find_dotenv
 import os
 

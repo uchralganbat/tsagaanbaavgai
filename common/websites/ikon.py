@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 import os
 import datetime
-from src.common.models.article import Article
+from common.models.article import Article
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from typing import Optional
